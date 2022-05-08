@@ -35,17 +35,17 @@ theme_set(theme_light())
 my_theme <- theme(strip.background =element_rect(fill="#30638e")) +
   theme(strip.text = element_text(colour = 'white', face = "bold"))
 
-game_data <- read_rds("data/20220504_games.rds")
+game_data <- read_rds("data/all_games.rds")
 
 game_data %>% 
-  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked")) %>% 
+  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked", "Blua")) %>% 
   mutate(datum = as_date(gameStartTimestamp),
          datum = floor_date(datum, "week")) %>% 
   count(summonerName, datum) %>% 
   ggplot(aes(datum, n, fill = summonerName)) +
   geom_col() +
   facet_wrap(~summonerName, ncol = 1) +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49"), guide = "none") +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261"), guide = "none") +
   labs(title = "Count of games of selected summoners",
        x = "Date", 
        y = "Games") +
@@ -53,7 +53,7 @@ game_data %>%
 
 week_order <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 zeit_daten <- game_data %>% 
-  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked")) %>% 
+  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked", "Blua")) %>% 
   select(summonerName, gameStartTimestamp) %>% 
   mutate(week_day = wday(gameStartTimestamp, abbr = FALSE, label = TRUE),
          week_day = factor(week_day, week_order, ordered = TRUE),
@@ -68,7 +68,7 @@ zeit_daten %>%
   coord_polar() +
   scale_y_continuous(labels = scales::percent_format()) +
   facet_wrap(~summonerName) +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49"), guide = "none") +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261"), guide = "none") +
   my_theme +
   labs(title = "What week day do they play most?", 
        y = NULL, 
@@ -82,7 +82,7 @@ zeit_daten %>%
   geom_col() +
   coord_polar() +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49"), guide = "none") +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261"), guide = "none") +
   facet_wrap(~summonerName) +
   my_theme +
   labs(title = "What hour do they play most?", 
@@ -90,14 +90,14 @@ zeit_daten %>%
        x = NULL)
 
 game_data %>% 
-  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked")) %>% 
+  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked", "Blua")) %>% 
   count(summonerName, championName, sort = TRUE) %>% 
   filter(n > 2) %>% 
   ggplot(aes(n, reorder_within(championName, n, summonerName), fill = summonerName)) +
   geom_col() +
   facet_wrap(~summonerName, scales = "free_y") +
   scale_y_reordered() +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49"), guide = "none") +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261"), guide = "none") +
   labs(title = "Count of used Champions of selected summoners",
        subtitle = "Played at least three times",
        x = "Games",
@@ -105,7 +105,7 @@ game_data %>%
   my_theme
 
 game_data %>% 
-  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked")) %>% 
+  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked", "Blua")) %>% 
   count(summonerName, win, championName) %>% 
   pivot_wider(names_from = win, 
               values_from = n, 
@@ -118,7 +118,7 @@ game_data %>%
   ggplot(aes(win_perc, fct_reorder(champion_name, win_perc), fill = summoner_name)) +
   geom_col(position = "dodge") +
   geom_vline(xintercept = 0.5, linetype = "dashed") +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49")) +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261")) +
   scale_x_continuous(labels = scales::percent_format()) +
   labs(title = "Win percent per Summoner per Champion",
        x = "Wins in %",
@@ -127,7 +127,7 @@ game_data %>%
        fill = "Summoner")
 
 game_data %>% 
-  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked")) %>% 
+  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked", "Blua")) %>% 
   count(summonerName, win, lane) %>% 
   pivot_wider(names_from = win, 
               values_from = n, 
@@ -145,7 +145,7 @@ game_data %>%
   facet_wrap(~lane, scales = "free_y") +
   scale_y_reordered() +
   geom_vline(xintercept = 0.5, linetype = "dashed") +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49"), guide = "none") +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261"), guide = "none") +
   scale_x_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
   labs(title = "Win percent per Summoner per Lane",
        x = "Wins in %",
@@ -156,7 +156,7 @@ game_data %>%
 
 
 box_data <- game_data %>% 
-  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked")) %>% 
+  filter(summonerName %in% c("Jocar", "Paintrain100", "BigFish84", "locked", "Blua")) %>% 
   mutate(
     deaths_new = ifelse(deaths == 0, 1, deaths),
     kda = ceiling((kills+assists)/(deaths_new))) %>% 
@@ -176,7 +176,7 @@ box_data %>%
   geom_jitter(
     data = box_data %>% 
       filter(outlier == 1), height = 0.1, color = "red", alpha = 0.4) +
-  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49"), guide = "none") +
+  scale_fill_manual(values = c("#003d5b", "#00798c", "#d1495b", "#edae49", "#f4a261"), guide = "none") +
   labs(title = "KDA Ratio by Summoner", 
        y = NULL, 
        x = "KDA") 

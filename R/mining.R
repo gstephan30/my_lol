@@ -30,6 +30,7 @@ jocar_puuid <- "PUVIXbSAf37rmqeF90dnVLSy_nKUCCWVjv1i4a2h_DciV25Wjr5vgiRVLDd4Wi-r
 paintrain_puuid <- "ns6A_0BsSV7nKvhtK8bmEKK4gVy_2wUWPN2Joe2MQuzJnnA0zTU-nijiSqVWgRw-o2f-TOZ-eGoNNA"
 bigfish_puuid <- "KDpgUXKFafwS5CLMzit77xE-Zlin6Y6pLOUM_d8ZjFretTfwMDLa1OeissL9YhjxQySLQGuDbd_-4Q"
 locked_puuid <- "BZvNWALIu_0S1Ic69c9tEe2Sur7U_wxCasc8IfOZrTjFjH5rxohd8V3iGvNWuzuGeOCJBerTd9FWkg"
+blua_puuid <- "RfESDk2R3LJSBYsOIJVv4KCdwe6DV65QcQ9qt3jRzH8sROhs4-T8xtFEraFZgR4F5r30OedwOFbAMA"
 
 get_game_ids <- function(puuid) {
   all_games <- NULL
@@ -45,16 +46,24 @@ get_game_ids <- function(puuid) {
 }
 
 game_ids <- tibble(
-  name = c("Jocar", "Paintrain100", "BigFish84", "locked"),
-  puuids = c(jocar_puuid, paintrain_puuid, bigfish_puuid, locked_puuid)
+  name = c("Jocar", "Paintrain100", "BigFish84", "locked", "blua"),
+  puuids = c(jocar_puuid, paintrain_puuid, bigfish_puuid, locked_puuid, blua_puuid)
 ) %>% 
   rowwise() %>% 
   mutate(game_ids = map(puuids, get_game_ids))
 
-new_games <- read_rds("data/20220504_games.rds") %>% 
-  mutate(game_id = paste0(platformId, "_", gameId)) %>% 
-  distinct(game_id) %>% 
-  filter(!game_id %in% unique(unlist(game_ids$game_ids))) %>% 
+game_file <-  read_rds("data/all_games.rds") %>% 
+  mutate(game_id = paste0(platformId, "_", gameId))
+
+new_games <- game_ids %>% 
+  ungroup() %>% 
+  unnest(game_ids) %>% 
+  distinct(game_ids) %>% 
+  select(game_id = 1) %>% 
+  anti_join(
+    game_file %>% 
+      distinct(game_id)
+  ) %>% 
   pull(game_id)
 
 get_game_data <- function(game_id, api_key) {
@@ -80,12 +89,12 @@ get_game_data <- function(game_id, api_key) {
 }
 
 steps <- 100
-print(paste0("Process will take: ", ((seq(1, length(game_ids), steps) %>% length() - 1) * 135 / 60), " minutes."))
+print(paste0("Process will take: ", ((seq(1, length(new_games), steps) %>% length() - 1) * 135 / 60), " minutes."))
 all_game_data <- NULL
-for (i in seq(1, length(game_ids), steps)) {
+for (i in seq(1, length(new_games), steps)) {
   
   while ((i %% steps) != 0) {
-    all_game_data[[i]] <- get_game_data(game_ids[i], key)
+    all_game_data[[i]] <- get_game_data(new_games[i], key)
     i <- i + 1
   }
   
@@ -93,9 +102,9 @@ for (i in seq(1, length(game_ids), steps)) {
   Sys.sleep(135) # in truth 2min 15sec
 }
 
-heute <- gsub("-", "", Sys.Date())
-file_name <- paste0("data/", heute, "_games.rds")
+file_name <- paste0("data/all_games.rds")
 all_game_data %>% 
   bind_rows() %>% 
-  save(., file = paste0("data/", file_name))
+  bind_rows(game_file) %>% 
+  write_rds(., file = file_name)
 
