@@ -92,6 +92,7 @@ steps <- 100
 print(paste0("Process will take: ", ((seq(1, length(new_games), steps) %>% length() - 1) * 135 / 60), " minutes."))
 all_game_data <- NULL
 for (i in seq(1, length(new_games), steps)) {
+  Sys.sleep(135)
   
   while ((i %% steps) != 0) {
     all_game_data[[i]] <- get_game_data(new_games[i], key)
